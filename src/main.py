@@ -1,7 +1,8 @@
 import streamlit as st
-import os # to access env variables
-from dotenv import load_dotenv # load env variable from .env file 
-from agents import *
+import os
+from dotenv import load_dotenv
+from agents.llm import HFInferenceLLM
+from agents.debate import DebateSystem
 
 # Load environment variables
 load_dotenv()
@@ -13,26 +14,39 @@ st.set_page_config(
     layout="wide"
 )
 
-def test_llm_connection(api_token):
-    """Test the LLM connection and return detailed results"""
-    try:
-        llm = HFInferenceLLM(api_token)
-        test_response = llm("Hello! Please respond with a short greeting.")
-        
-        return {
-            "success": True if test_response and "error" not in test_response.lower() else False,
-            "response": test_response,
-            "error": None
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "response": None,
-            "error": str(e)
-        }
 def main():
     st.title("AI Debate System")
-
+    
+    # Sidebar for debate parameters
+    st.sidebar.title("Debate Parameters")
+    
+    parameters = {
+        'debate_style': st.sidebar.selectbox(
+            "Debate Style:",
+            ["Formal", "Casual", "Academic"]
+        ),
+        'debate_rounds': st.sidebar.slider(
+            "Number of Exchange Rounds:",
+            min_value=1,
+            max_value=5,
+            value=2
+        ),
+        'focus_points': st.sidebar.number_input(
+            "Points per Argument:",
+            min_value=1,
+            max_value=5,
+            value=3
+        ),
+        'fact_checking': st.sidebar.checkbox(
+            "Enable Fact Checking",
+            value=True
+        ),
+        'show_thinking': st.sidebar.checkbox(
+            "Show Agent Thinking Process",
+            value=False
+        )
+    }
+    
     # HuggingFace API setup
     api_token = st.text_input(
         "Enter your HuggingFace API token:",
@@ -40,7 +54,7 @@ def main():
         value=os.getenv('HUGGINGFACE_API_TOKEN', ''),
         help="Get your free token at https://huggingface.co/settings/tokens"
     )
-
+    
     if not api_token:
         st.warning("Please enter your HuggingFace API token to continue")
         st.markdown("""
@@ -51,46 +65,69 @@ def main():
         4. Create a new token
         """)
         return
-
-    # Create columns for better layout
-    col1, col2 = st.columns(2)
     
-    with col1:
-        st.success("API token configured successfully!")
-        # Test button
-        test_button = st.button("Test LLM Connection")
+    # Topic selection
+    topic_options = [
+        "Should artificial intelligence be regulated?",
+        "Is universal basic income a good idea?",
+        "Should social media platforms be responsible for content moderation?",
+        "Is nuclear energy the solution to climate change?",
+        "Should remote work become the standard for office jobs?",
+        "Custom topic"
+    ]
+    
+    topic_selection = st.selectbox("Select debate topic:", topic_options)
+    
+    if topic_selection == "Custom topic":
+        topic = st.text_input("Enter your custom topic:")
+    else:
+        topic = topic_selection
 
-    if test_button:
-        with st.spinner("Testing system..."):
-            # Test LLM first
-            llm_test = test_llm_connection(api_token)
-            if not llm_test["success"]:
-                st.error(f"LLM test failed: {llm_test['error']}")
-                return
+    if st.button("Start Debate"):
+        if topic:
+            with st.spinner("Initializing debate..."):
+                try:
+                    llm = HFInferenceLLM(api_token)
+                    debate = DebateSystem(topic, llm, parameters)
+                    
+                    if parameters['show_thinking']:
+                        st.sidebar.markdown("### Debate Progress")
+                        progress_bar = st.sidebar.progress(0)
+                    
+                    debate_log = debate.run_debate_round()
+                    
+                    # Display debate
+                    for index, event in enumerate(debate_log):
+                        # Update progress if enabled
+                        if parameters['show_thinking']:
+                            progress = (index + 1) / len(debate_log)
+                            progress_bar.progress(progress)
+                        
+                        # Display event based on type
+                        if event['type'] == "MODERATOR":
+                            st.write("🎙️ **Moderator:**")
+                            st.markdown(event['content'])
+                        elif "REBUTTAL" in event['type']:
+                            st.write(f"🔄 **{event['type'].replace('_REBUTTAL', '')} Rebuttal:**")
+                            st.markdown(event['content'])
+                        elif "CLOSING" in event['type']:
+                            st.write(f"🎭 **{event['type'].replace('_CLOSING', '')} Closing:**")
+                            st.markdown(event['content'])
+                        elif event['type'] in ["PROPONENT", "OPPONENT"]:
+                            st.write(f"🗣️ **{event['type']}:**")
+                            st.markdown(event['content'])
+                        elif event['type'] == "FACT_CHECK":
+                            with st.expander("📋 Fact Check"):
+                                st.markdown(event['content'])
+                        
+                        # Add separator between events
+                        st.markdown("---")
                 
-            st.success("LLM connection test successful!")
-            st.info(f"LLM test response: {llm_test['response']}")
-            
-            # Proceed with debate agent test
-            llm = HFInferenceLLM(api_token)
-            debater = DebateAgent("Pro", "in favor", llm)
-            
-            parameters = {
-                "debate_style": "Formal",
-                "focus_points": 3
-            }
-            
-            opening = debater.generate_opening_statement(
-                "Should AI be regulated?",
-                parameters
-            )
-            
-            if "Error" in opening:
-                st.error(f"Debate agent test failed: {opening}")
-            else:
-                st.success("Debate agent test successful!")
-                st.info(f"Sample opening statement: {opening}")
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
+        else:
+            st.warning("Please enter a debate topic")
+
 if __name__ == "__main__":
     main()
-
 # test streamlit run src/main.py
