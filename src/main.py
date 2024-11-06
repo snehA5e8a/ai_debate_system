@@ -122,7 +122,28 @@ def main():
                         
                         # Add separator between events
                         st.markdown("---")
-                
+                    if debate_log:  # Check if we have any debate content
+                        st.sidebar.markdown("### Debate Statistics")
+                        stats = {
+                            "Total Exchanges": len(debate_log),
+                            "Pro Arguments": len([e for e in debate_log if "PROPONENT" in e['type']]),
+                            "Con Arguments": len([e for e in debate_log if "OPPONENT" in e['type']]),
+                            "Fact Checks": len([e for e in debate_log if e['type'] == "FACT_CHECK"])
+                        }
+                        st.sidebar.json(stats)
+                        
+                        # Add download button
+                        transcript = "\n\n".join([
+                            f"{event['type']}: {event['content']}" 
+                            for event in debate_log
+                        ])
+                        
+                        st.download_button(
+                            label="Download Debate Transcript",
+                            data=transcript,
+                            file_name="debate_transcript.txt",
+                            mime="text/plain"
+                        )
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")
         else:

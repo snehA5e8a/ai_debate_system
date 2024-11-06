@@ -1,4 +1,4 @@
-streamlit==1.31.0
-huggingface-hub==0.20.3
+streamlit==1.32.0
+huggingface-hub==0.21.1
 python-dotenv==1.0.0
 typing-extensions==4.9.0
