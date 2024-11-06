@@ -32,12 +32,25 @@ class BaseAgent:
     def update_stats(self, stat_name: str, value: int = 1):
         """
         Update agent statistics
-        Stats can be the number of arguments made or mistakes identified. Not crucial 
+        Stats can be the number of arguments made or mistakes identified. 
         """
-        if stat_name not in self.stats:
-            self.stats[stat_name] = 0  # Create a new statistics for agent performance
-        self.stats[stat_name] += value
-        
+        if "actions_taken" not in self.stats:
+            self.stats["actions_taken"] = 0
+        if "last_action" not in self.stats:
+            self.stats["last_action"] = None
+        if "success_rate" not in self.stats:
+            self.stats["success_rate"] = 0
+
+        #Update stats
+        self.stats["actions_taken"] += 1
+        self.stats["last_action"] = action
+    
+        # Update success rate
+        if success:
+            current_successes = self.stats["success_rate"] * (self.stats["actions_taken"] - 1)
+            new_successes = current_successes + 1
+            self.stats["success_rate"] = new_successes / self.stats["actions_taken"]
+
     def get_stats(self) -> Dict:
         """Get agent statistics"""
         return self.stats
