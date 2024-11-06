@@ -153,3 +153,4 @@ Begin with a clear restatement of your main position."""
             return response
         except Exception as e:
             return f"Error generating closing statement for {self.stance} position"
+        
