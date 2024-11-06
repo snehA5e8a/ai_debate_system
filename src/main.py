@@ -1,7 +1,7 @@
 import streamlit as st
 import os # to access env variables
 from dotenv import load_dotenv # load env variable from .env file 
-from agents import HFInferenceLLM, DebateAgent
+from agents import *
 
 # Load environment variables
 load_dotenv()
@@ -13,6 +13,23 @@ st.set_page_config(
     layout="wide"
 )
 
+def test_llm_connection(api_token):
+    """Test the LLM connection and return detailed results"""
+    try:
+        llm = HFInferenceLLM(api_token)
+        test_response = llm("Hello! Please respond with a short greeting.")
+        
+        return {
+            "success": True if test_response and "error" not in test_response.lower() else False,
+            "response": test_response,
+            "error": None
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "response": None,
+            "error": str(e)
+        }
 def main():
     st.title("AI Debate System")
 
@@ -43,41 +60,36 @@ def main():
         # Test button
         test_button = st.button("Test LLM Connection")
 
-    # Only initialize LLM and run test if button is clicked
-    """
     if test_button:
-        try:
-            with st.spinner("Initializing LLM and testing connection..."):
-                llm = HFInferenceLLM(api_token)
-                test_response = llm("Hello! Please respond with a short greeting.")
-                if "error" not in test_response.lower():
-                    st.success("LLM connection test successful!")
-                    st.info(f"Test Response: {test_response}")
-                else:
-                    st.error("LLM test failed. Please check your API token.")
-        except Exception as e:
-            st.error(f"Error initializing LLM: {str(e)}")
-
-    st.write("Other switches to add")
-"""
-    # Test code for debate agent
-    if test_button:
-        try:
-            with st.spinner("Testing debate agent..."):
-                llm = HFInferenceLLM(api_token)
+        with st.spinner("Testing system..."):
+            # Test LLM first
+            llm_test = test_llm_connection(api_token)
+            if not llm_test["success"]:
+                st.error(f"LLM test failed: {llm_test['error']}")
+                return
                 
-                # Test DebateAgent
-                debater = DebateAgent("Pro", "in favor", llm)
-                opening = debater.generate_opening_statement(
-                    "Should AI be regulated?",
-                    {"debate_style": "Formal", "focus_points": 3}
-                )
+            st.success("LLM connection test successful!")
+            st.info(f"LLM test response: {llm_test['response']}")
+            
+            # Proceed with debate agent test
+            llm = HFInferenceLLM(api_token)
+            debater = DebateAgent("Pro", "in favor", llm)
+            
+            parameters = {
+                "debate_style": "Formal",
+                "focus_points": 3
+            }
+            
+            opening = debater.generate_opening_statement(
+                "Should AI be regulated?",
+                parameters
+            )
+            
+            if "Error" in opening:
+                st.error(f"Debate agent test failed: {opening}")
+            else:
                 st.success("Debate agent test successful!")
                 st.info(f"Sample opening statement: {opening}")
-                
-        except Exception as e:
-            st.error(f"Error testing debate agent: {str(e)}")
-
 if __name__ == "__main__":
     main()
 
