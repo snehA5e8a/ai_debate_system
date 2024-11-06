@@ -1,7 +1,6 @@
 from huggingface_hub import InferenceClient
 import streamlit as st
 
-
 class HFInferenceLLM:
     """Language model interface using HuggingFace Inference API"""
     def __init__(self, api_token: str):
