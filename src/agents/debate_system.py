@@ -1,3 +1,5 @@
+# MAIN SYSTEM ORCHESTRATING(integrating apps to automate process) THE DEBATE
+
 import streamlit as st  # for error handling in this 
 from typing import List, Dict
 import time
@@ -45,6 +47,7 @@ class DebateSystem:
             
             # Opening statements
             for debater in [self.debater_pro, self.debater_con]:
+                st.write(f"Generating opening statement for {debater.name}...")
                 statement = debater.generate_opening_statement(
                     self.topic, 
                     self.parameters

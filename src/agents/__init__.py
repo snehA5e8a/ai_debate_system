@@ -7,4 +7,4 @@ from .moderator import ModeratorAgent
 from .fact_checker import FactCheckerAgent
 from .debate_system import DebateSystem
 
-__all__ = ['DebateAgent', 'HFInferenceLLM', 'ModeratorAgent', 'FactCheckerAgent']
+__all__ = ['DebateAgent', 'HFInferenceLLM', 'ModeratorAgent', 'FactCheckerAgent', 'DebateSystem']

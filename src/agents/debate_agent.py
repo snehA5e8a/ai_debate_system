@@ -1,6 +1,7 @@
 
 from typing import Dict
 from .base_agent import BaseAgent
+import time
 
 class DebateAgent:
     """
@@ -13,14 +14,23 @@ class DebateAgent:
     """
     def __init__(self, name: str, stance: str, llm):
         self.name= name
+        self.memory = []  # to hold the previous arguments/statements
         self.llm = llm
         self.stance = stance
         self.strategy = "balanced"
-        """self.stats.update({
+        self.stats = {
             "arguments_made": 0,
             "rebuttals_made": 0,
             "points_addressed": 0
-        })"""
+        }
+        
+    def remember(self, content: str, type: str):
+        """Store information in agent's memory"""
+        self.memory.append({
+            "content": content,
+            "type": type,  # argument or fact checking or any other type of statement made in the debate
+            "timestamp": time.time()
+        })
         
     def analyze_opponent(self, argument: str) -> Dict:
         """Analyze opponent's argument to adapt strategy"""
@@ -42,34 +52,34 @@ class DebateAgent:
     def generate_opening_statement(self, topic: str, parameters: Dict) -> str:
         """Generates an opening statement"""
         style_guide = {
-            "Formal": "use precise language and academic tone",
+            "Formal": "use precise, not courtroom language and academic tone",
             "Casual": "use conversational language while maintaining respect",
             "Academic": "use scholarly language with references to research"
         }
         
         prompt = f"""You are presenting a perspective {self.stance} on: {topic}
 
-Present your opening viewpoint that:
-- {style_guide[parameters['debate_style']]}
-- Makes {parameters['focus_points']} clear points
-- Backs claims with specific examples or evidence
-- Maintains a {self.strategy} and constructive tone
+                Present your opening viewpoint that:
+                - {style_guide[parameters['debate_style']]}
+                - Makes {parameters['focus_points']} clear points
+                - Backs claims with specific examples or evidence
+                - Maintains a {self.strategy} and constructive tone
 
-Important Guidelines:
-- Focus on presenting your perspective directly
-- Avoid debate competition language or addressing judges
-- Don't use phrases like "honorable judges" or "dear audience"
-- Present your points naturally as if in an informed discussion
-- Stay focused on the topic and evidence
+                Important Guidelines:
+                - Focus on presenting your perspective directly
+                - Avoid debate competition language or addressing judges
+                - Don't use phrases like "honorable judges" or "dear audience"
+                - Present your points naturally as if in an informed discussion
+                - Stay focused on the topic and evidence
 
-Begin your response with a clear statement of your position."""
+                Begin your response with a clear statement of your position."""
         
         try:
             response = self.llm(prompt)
             if not response or response.isspace():
                 response = f"Error: Could not generate opening statement for {self.stance} position"
             self.remember(response, "opening")
-            #self.stats["arguments_made"] += 1
+            self.stats["arguments_made"] += 1
             return response
         except Exception as e:
             return f"Error generating opening statement for {self.stance} position"
@@ -86,31 +96,31 @@ Begin your response with a clear statement of your position."""
         
         prompt = f"""You are continuing a discussion {self.stance} on: {topic}
 
-Previous argument to address: {opponent_argument}
+                 Previous argument to address: {opponent_argument}
 
-Based on analysis: {analysis.get('analysis', 'No analysis available')}
+                Based on analysis: {analysis.get('analysis', 'No analysis available')}
 
-Provide a response that:
-- {style_guide[parameters['debate_style']]}
-- Addresses {parameters['focus_points']} key points from the previous argument
-- Presents counter-evidence or alternative perspectives
-- Maintains a {self.strategy} and constructive approach
+                Provide a response that:
+                - {style_guide[parameters['debate_style']]}
+                - Addresses {parameters['focus_points']} key points from the previous argument
+                - Presents counter-evidence or alternative perspectives
+                - Maintains a {self.strategy} and constructive approach
 
-Important Guidelines:
-- Address the arguments directly without debate formalities
-- Focus on the substance of the counter-arguments
-- Avoid competitive debate language or addressing judges
-- Present your points as part of a reasoned discussion
-- Keep responses evidence-based and logical
+                Important Guidelines:
+                - Address the arguments directly without debate formalities
+                - Focus on the substance of the counter-arguments
+                - Avoid competitive debate language or addressing judges
+                - Present your points as part of a reasoned discussion
+                - Keep responses evidence-based and logical
 
-Start by directly addressing the most significant point raised."""
+                Start by directly addressing the most significant point raised."""
         
         try:
             response = self.llm(prompt)
             if not response or response.isspace():
                 response = f"Error: Could not generate rebuttal for {self.stance} position"
             self.remember(response, "rebuttal")
-            #self.stats["rebuttals_made"] += 1
+            self.stats["rebuttals_made"] += 1
             return response
         except Exception as e:
             return f"Error generating rebuttal for {self.stance} position"
@@ -122,29 +132,27 @@ Start by directly addressing the most significant point raised."""
             "Casual": "use conversational language while maintaining respect",
             "Academic": "use scholarly language with references to research"
         }
-        
+        # Get previous arguments from memory
         memory_points = "\n".join([f"- {m['content']}" for m in self.memory])
         
         prompt = f"""You are concluding your perspective {self.stance} on: {topic}
 
-Previous points discussed:
-{memory_points}
+                        Previous points discussed:{memory_points}
 
-Provide a conclusion that:
-- {style_guide[parameters['debate_style']]}
-- Synthesizes the main arguments presented
-- Reinforces your key evidence and examples
-- Addresses significant counterpoints raised
+                        Provide a conclusion that:
+                        - {style_guide[parameters['debate_style']]}
+                        - Synthesizes the main arguments presented
+                        - Reinforces your key evidence and examples  
+                        - Addresses significant counterpoints raised
 
-Important Guidelines:
-- Summarize your position clearly and directly
-- Avoid debate competition language or formalities
-- Don't address judges or audience
-- Focus on the strength of your arguments and evidence
-- Maintain a constructive, solution-oriented tone
+                        Important Guidelines:
+                        - Summarize your position clearly and directly
+                        - Avoid debate competition language or formalities
+                        - Don't address judges or audience
+                        - Focus on the strength of your arguments and evidence
+                        - Maintain a constructive, solution-oriented tone
 
-Begin with a clear restatement of your main position."""
-        
+                        Begin with a clear restatement of your main position and conclude with your strongest evidence."""
         try:
             response = self.llm(prompt)
             if not response or response.isspace():
