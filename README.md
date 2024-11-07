@@ -142,8 +142,16 @@ To contribute to the project:
 
 ## License
 
-[Add your license information here]
+All rights reserved. This project is currently unlicensed.
+Note: Without a license:
+
+The code is under exclusive copyright by default
+No one can copy, distribute, or modify your work
+No one can use your code for public or commercial purposes
+Others can read and learn from your code, but cannot use it in their own projects
+
+If you plan to collaborate or share this project in the future, consider adding an open-source license.
 
 ## Authors
 
-[Add author information here]
+* Sneha Sebastian - Initial work - [snehA5e8a](https://github.com/snehA5e8a)
