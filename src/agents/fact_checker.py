@@ -17,24 +17,33 @@ class FactCheckerAgent:
     
     def check_facts(self, statement: str) -> str:
         """Verifies facts in a statement"""
-        prompt = f"""As a fact-checker, analyze this statement objectively:
+        prompt = f"""Analyze this statement for factual accuracy:
 
-Statement to verify:
 {statement}
 
-Provide a structured analysis:
-1. Identify specific, verifiable claims
-2. Rate each claim (True/Partially True/False) with confidence level
-3. Provide relevant context or evidence
-4. Note any missing context or potential biases
+Respond with only:
+1. Extract 2-3 key factual claims from the statement (ignore opinions)
+2. For each claim:
+   - State the claim directly
+   - Rate accuracy: Verified, Unverified, or Misleading
+   - Provide ONE brief, specific reason for the rating
+3. Keep technical details and statistics focused only on the exact claims made
 
-Format your response clearly with:
-- Summary rating
-- Individual claim analysis
-- Supporting evidence
-- Important caveats
+Do not:
+- Include examples or hypotheticals
+- Reference studies or reports not directly relevant
+- Make predictions or assumptions
+- Use phrases like "Example:" or "Analysis:"
+- Include caveats or general context
+- Quote statistics unless directly checking a number in the statement
 
-Focus on verifiable facts rather than opinions or subjective statements."""
+Format:
+
+CLAIM: [exact claim from text]
+RATING: [Verified/Unverified/Misleading]
+REASON: [one specific, direct reason for rating]
+
+[Repeat for each claim]"""
         
         try:
             result = self.llm(prompt)
