@@ -155,7 +155,8 @@ Do not:
     Begin the response directly with your counterargument."""
 
         try:
-            response = self.llm(prompt)
+            response1 = self.llm(prompt)
+            response = self.clean_response(response1)
             # prevents empty/whitespace responses
             if not response or response.isspace():
                 response = f"Error: Could not generate rebuttal for {self.stance} position"
@@ -212,7 +213,8 @@ Begin directly with your closing argument."""
 
                         
         try:
-            response = self.llm(prompt)
+            response1 = self.llm(prompt)
+            response = self.clean_response(response1)
             if not response or response.isspace():
                 response = f"Error: Could not generate closing statement for {self.stance} position"
             self.remember(response, "closing")
