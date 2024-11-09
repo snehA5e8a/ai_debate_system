@@ -1,0 +1,12 @@
+- Debate system 
+- Moderator Agent
+-- Edited the intro prompt - working :heavy-tick:
+-- Minor fix - removed 'generating response' text display
+
+- Debate agent
+-- Proponent open statement - code space is being displayed - special characters, tokens are being leaked to response
+-- Added a response preprocessing function after generating response, before passing to main
+
+Issues
+- Moderator Agent
+-- Not getting the log in between to process or analyse

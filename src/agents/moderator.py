@@ -17,22 +17,24 @@ class ModeratorAgent:
     def moderate(self, topic: str, stage: str) -> str:
         """Provides moderation text for debate stages"""
         stage_prompts = {
-            "introduction": f"""You are the moderator of a debate on topic: {topic}.
-                write an introduction:
-                - Begin by welcoming the audience and introducing yourself.
+            "introduction": f"""You are the moderator of a debate on topic: {topic}. Give an introduction to the debate by 
+                - Start by Welcoming the audience and introducing yourself.
                 - Clearly state the topic of the debate.
                 - Provide a brief overview of why this topic is important or relevant.
                 - Pass the floor to the debaters for their opening statements, starting with [Debater 1's Name].
                 Do not:
+                - No sentences before welcoming statement 
                 - Include examples or templates
                 - Add instructions about moderation
                 - Use meta-language about debates
                 - Mention debate rules or expectations
                 - Use phrases like "join us" or "example:
-                - Exceed 3 sentences""",
+                - Exceed 3 sentences
+                - Do not include "in length Here's a good example for you:"
+                """,
 
             "transition": f"""Moderating our discussion on {topic} after hearing one argument each from opponent and proponent.
-                The debate history so far: {self.debate_history[-2]}
+                The debate history so far: {self.debate_history}
                 Provide only:
                 1. A single acknowledgment of the previous point
                 2. A brief direction for the next speaker
@@ -54,6 +56,7 @@ Do not:
 - Add examples
 - Include summaries
 - Use phrases like "join us" or "example:"
+
 
 Keep the closing to 2 sentences maximum."""
         }

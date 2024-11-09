@@ -31,14 +31,34 @@ class DebateAgent:
             "type": type,  # argument or fact checking or any other type of statement made in the debate
             "timestamp": time.time()
         })
+    
+    def clean_response(self, response_text):
+        # List of tokens/markers to remove
+        tokens_to_remove = [
+            '<|assistant|>',
+            '<|human|>',
+            '```',
+            '<|system|>',
+            '<|user|>', "Point 1:", "For example:", "Position:", "Argument 1:"]
+    
+        # Remove all tokens
+        for token in tokens_to_remove:
+            response_text = response_text.replace(token, '')
+        # Clean up any extra whitespace
+        response_text = response_text.strip()
+    
+         # Remove any multiple consecutive newlines
+        response_text = '\n'.join(line for line in response_text.splitlines() if line.strip())
+    
+        return response_text
         
     def analyze_opponent(self, argument: str) -> Dict:
         """Analyze opponent's argument to target counter-arguments by 
         Extracting specific claims to counter
         Identifing  evidence gaps to exploit"""
         try:
-            analysis_prompt = f"""Extract from this argument:
-{argument}
+            analysis_prompt = f"""Extract from this argument:{argument}
+    
 
 1. List the 3 strongest factual claims made
 2. List any statistics or data cited
@@ -71,41 +91,39 @@ Do not:
         }
         
         prompt = f"""Topic: {topic}
-Position: {self.stance}
+            Position: {self.stance}
 
-Present a compelling opening argument supporting your position on {topic}. 
-requirements:
-- Begin with a clear position statement
-- Support each argument with specific evidence
-- Use natural transitions between ideas without mentioning position, argument 1, 2 etc
-- Maintain {parameters['debate_style'].lower()} tone
-- End with a strong concluding sentence
-Constraints:
-- Maximum 3 paragraphs- No numbered points or markers like "firstly"
-- No meta-references to the debate
-- No phrases like "I believe" or "In this essay"
-- No templates or outlines
-Do not:
-- Use phrases like "Point 1:" or "For example:"
-- Include instructions or explanations
-- Use bullet points or numbered lists
-- Make meta-references 
-- Start with "I believe" or similar phrases, Example: 
-- Do not use Position:, Argument 1: 
+            Present a compelling opening argument supporting your position on {topic}. 
+            Requirements:
+            - Begin with a clear position statement
+            - Support each argument with specific evidence
+            - Use natural transitions between ideas without mentioning position, argument 1, 2 etc
+            - Maintain {parameters['debate_style'].lower()} tone
+            - End with a strong concluding sentence
 
-Start directly with your first argument. Connect your points with smooth transitions. End with a clear conclusion that ties your arguments together.
+            Do not:
+            - Include instructions or explanations
+            - Use bullet points or numbered lists
+            - Make meta-references 
+            - Start with "I believe" or "Explanation" or "Example:" similar phrases 
+            - Exceed 150 words
 
-"""
+            
+            Start directly with your first argument. Connect your points with smooth transitions. End with a clear conclusion that ties your arguments together.
+            
+
+        """
 
         try:
-            response = self.llm(prompt)
+            response1 = self.llm(prompt)
+            response = self.clean_response(response1)
             if not response or response.isspace():
                 response = f"Error: Could not generate opening statement for {self.stance} position"
             self.remember(response, "opening")
             self.stats["arguments_made"] += 1
             return response
         except Exception as e:
-            return f"Error generating opening statement for {self.stance} position"
+            return f"Error generating opening statement for {self.stance} position: {e}"
     # rebuttals targeting other side's points as make it more adversarial
 
     def generate_rebuttal(self, topic: str, opponent_argument: str, parameters: Dict) -> str:
@@ -116,29 +134,17 @@ Start directly with your first argument. Connect your points with smooth transit
         # Check memory for repeated points
         previous_points = [m['content'] for m in self.memory]
         
-        prompt = f"""Topic: {topic}
-    Your stance: {self.stance}
-    Previous discussion points: {previous_points}
-    Responding to opponent's argument:{opponent_argument}
+        prompt = f""" On Topic: {topic} you are taking {self.stance} stance
 
-    Based on opponent's argument:
-    {analysis.get('analysis', '')}
-
-    Requirements:
-    1. Avoid repeating previous points
+    Create an argument that opposes the opponent's argument: {opponent_argument}
+    Based on opponent's argument: {analysis.get('analysis', '')}
+    While creating this argument,keep in mind your Previous discussion points: {previous_points} to
+    1. Address opponent's key points directly
     2. Build upon rather than just oppose
     3. Advance the discussion with new insights
     4. Connect arguments to broader implications
-    5. Address opponent's key points directly
-    6. Present new supporting evidence
-    7. Maintain focus on {parameters['focus_points']} main counterpoints
-    8. Use {parameters['debate_style'].lower()} tone
-
-    Constraints:
-    - Maximum 2-3 paragraphs
-    - No marker words like "firstly" or "moreover"
-    - No meta-debate language
-    - No templates or outlines
+    5. Present new supporting evidence
+    6. Use {parameters['debate_style'].lower()} tone
 
     Do not:
     - Cycle back to previous arguments
@@ -146,7 +152,7 @@ Start directly with your first argument. Connect your points with smooth transit
     - Use meta-debate language
     - List points with markers
     
-    Begin directly with your counterargument."""
+    Begin the response directly with your counterargument."""
 
         try:
             response = self.llm(prompt)

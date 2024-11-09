@@ -47,7 +47,6 @@ class DebateSystem:
             
             # Opening statements
             for debater in [self.debater_pro, self.debater_con]:
-                st.write(f"Generating opening statement for {debater.name}...")
                 statement = debater.generate_opening_statement(
                     self.topic, 
                     self.parameters
