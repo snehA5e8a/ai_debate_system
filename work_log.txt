@@ -8,7 +8,15 @@ Code space is being displayed - special characters, tokens are being leaked to r
 -- Added a response preprocessing function after generating response, before passing to main
 
 Issues
-Debate agent - opening statement(s)  - response overflow
-- Moderator Agent
--- Not getting the log in between to process or analyse
+1. Debate agent - opening statement(s) response overflow 
+2. Moderator Agent - Not getting the log in between to process or analyse
+3. Proponent rebuttal 	and opponent rebuttal: 
+   Possible causes:
+	- Proponent is not receiving the right/any statement to analyse and oppose to
+	- Opponent is receiving its own opening statement to analyse and oppose to
+   Or 
+	- Need to check the flow in debate system Main arguments and rebuttals 
+4. Factchecker result - inconsistent : need to check the flow
+
+
 
