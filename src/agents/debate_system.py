@@ -14,7 +14,7 @@ class DebateSystem:
     """Main system orchestrating the debate"""
     def __init__(self, topic: str, llm, parameters: Dict):
         self.topic = topic
-        self.parameters = parameters
+        self.parameters = parameters  # Defined in main.py
         self.debater_pro = DebateAgent("Proponent", "in favor", llm)
         self.debater_con = DebateAgent("Opponent", "against", llm)
         self.fact_checker = FactCheckerAgent(llm)
