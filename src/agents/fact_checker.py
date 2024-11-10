@@ -1,5 +1,7 @@
 import time
 from typing import Dict
+from .utils import clean_response
+
 
 class FactCheckerAgent:
     """
@@ -15,38 +17,24 @@ class FactCheckerAgent:
         self.verified_facts = {}
         self.verification_history = []
     
+    
     def check_facts(self, statement: str) -> str:
-        """Verifies facts in a statement"""
-        prompt = f"""Analyze this statement for factual accuracy:
+        """Improved fact checking with focused output"""
+        prompt = f"""Analyze for factual accuracy (2-3 claims only):
+        {statement}
+        
+        Format strictly as follows: 
+        CLAIM: [exact claim]\n
+        RATING: [Verified/Unverified/Misleading] \n
+        REASON: [one specific reason] 
+        
+        Maximum 3 claims. Focus on numerical/statistical claims.
 
-{statement}
-
-Respond with only:
-1. Extract 2-3 key factual claims from the statement (ignore opinions)
-2. For each claim:
-   - State the claim directly
-   - Rate accuracy: Verified, Unverified, or Misleading
-   - Provide ONE brief, specific reason for the rating
-3. Keep technical details and statistics focused only on the exact claims made
-
-Do not:
-- Include examples or hypotheticals
-- Reference studies or reports not directly relevant
-- Make predictions or assumptions
-- Use phrases like "Example:" or "Analysis:"
-- Include caveats or general context
-- Quote statistics unless directly checking a number in the statement
-
-Format:
-
-CLAIM: [exact claim from text]
-RATING: [Verified/Unverified/Misleading]
-REASON: [one specific, direct reason for rating]
-
-[Repeat for each claim]"""
+        No additional text or explanations."""
         
         try:
-            result = self.llm(prompt)
+            result1 = self.llm(prompt)
+            result = clean_response(result1)
             self.verified_facts[statement] = result
             self.verification_history.append({
                 "statement": statement,
@@ -56,4 +44,3 @@ REASON: [one specific, direct reason for rating]
             return result
         except Exception as e:
             return f"Fact check error: {str(e)}"
-

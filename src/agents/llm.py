@@ -5,7 +5,7 @@ class HFInferenceLLM:
     """Language model interface using HuggingFace Inference API"""
     def __init__(self, api_token: str):
         self.client = InferenceClient(
-            model="HuggingFaceH4/zephyr-7b-beta",
+            model="mistralai/Mistral-7B-Instruct-v0.2",
             token=api_token
         )
     
@@ -15,8 +15,8 @@ class HFInferenceLLM:
             response = self.client.text_generation(
                 prompt,
                 max_new_tokens=180,
-                temperature=0.7,  # randomness from consistency to creativity (RFL)
-                repetition_penalty=1.1, # Small penalty
+                temperature=0.6,  # randomness from consistency to creativity (RFL)
+                repetition_penalty=1.2, # Small penalty
                 return_full_text=False # No need of returning prompt 
             )
             if response is None:

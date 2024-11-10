@@ -1,5 +1,7 @@
 import time
 from typing import Dict
+from .utils import clean_response
+
 
 class ModeratorAgent:
     """
@@ -12,50 +14,13 @@ class ModeratorAgent:
     """
     def __init__(self, llm, debate_log = []):
         self.llm = llm
-        self.debate_history = []
-
-    def clean_response(self, response_text):
-        # List of tokens/markers to remove
-        tokens_to_remove = [
-            '<|assistant|>',
-            '<|human|>',
-            '```',
-            '<|system|>',
-            '<|user|>', "Point 1:", "For example:", "Position:", "Argument 1:", "join us", "example:"]
-    
-        # Remove all tokens
-        for token in tokens_to_remove:
-            response_text = response_text.replace(token, '')
-        # Clean up any extra whitespace
-        response_text = response_text.strip()
-    
-         # Remove any multiple consecutive newlines
-        response_text = '\n'.join(line for line in response_text.splitlines() if line.strip())
-        def clean_response(self, response_text):
-        # List of tokens/markers to remove
-            tokens_to_remove = [
-            '<|assistant|>',
-            '<|human|>',
-            '```',
-            '<|system|>',
-            '<|user|>', "Point 1:", "For example:", "Position:", "Argument 1:", "join us", "example:"]
-    
-            # Remove all tokens
-            for token in tokens_to_remove:
-                response_text = response_text.replace(token, '')
-            # Clean up any extra whitespace
-            response_text = response_text.strip()
-        
-            # Remove any multiple consecutive newlines
-            response_text = '\n'.join(line for line in response_text.splitlines() if line.strip())
-
-        return response_text
-    
+        self.debate_history = []    
     
     def moderate(self, topic: str, stage: str) -> str:
         """Provides moderation text for debate stages"""
         stage_prompts = {
             "introduction": f"""You are the moderator of a debate on topic: {topic}. Give an introduction to the debate
+                STOP writing if you reach 130 words.   
                 Guidelines
                 - Start by Welcoming the audience and introducing yourself.
                 - Clearly state the topic of the debate.
@@ -68,6 +33,7 @@ class ModeratorAgent:
                 - Add instructions about moderation
                 - Use meta-language about debates
                 - Mention debate rules or expectations
+                     
                 """,
 
             "transition": f"""Moderating our discussion on {topic} after hearing one argument each from opponent and proponent.
@@ -80,6 +46,7 @@ class ModeratorAgent:
                 - Exceed 120 words
                 - Add examples
                 - Include moderation instructions
+            STOP writing if you reach 130 words.            
                 """,
 
             "closing": f"""Concluding our discussion on {topic}.
@@ -94,12 +61,13 @@ class ModeratorAgent:
                     - Include summaries
                     - Use phrases like "join us" or "example:"
 
-
-                    Keep the closing to 120 words maximum."""
+            STOP writing if you reach 130 words.            
+                """
         }
         
         try:
-            response = self.llm(stage_prompts.get(stage, ""))
+            response1 = self.llm(stage_prompts.get(stage, ""))
+            response = clean_response(response1)
             self.debate_history.append({
                 "stage": stage,
                 "content": response,
