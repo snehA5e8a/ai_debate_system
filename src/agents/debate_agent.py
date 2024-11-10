@@ -1,6 +1,4 @@
-
 from typing import Dict
-from .base_agent import BaseAgent
 import time
 
 class DebateAgent:
@@ -39,7 +37,7 @@ class DebateAgent:
             '<|human|>',
             '```',
             '<|system|>',
-            '<|user|>', "Point 1:", "For example:", "Position:", "Argument 1:"]
+            '<|user|>', "Point 1:", "For example:", "Position:", "Argument 1:", "join us", "example:"]
     
         # Remove all tokens
         for token in tokens_to_remove:
@@ -49,7 +47,7 @@ class DebateAgent:
     
          # Remove any multiple consecutive newlines
         response_text = '\n'.join(line for line in response_text.splitlines() if line.strip())
-    
+
         return response_text
         
     def analyze_opponent(self, argument: str) -> Dict:
@@ -57,7 +55,7 @@ class DebateAgent:
         Extracting specific claims to counter
         Identifing  evidence gaps to exploit"""
         try:
-            analysis_prompt = f"""Extract from this argument:{argument}
+            analysis_prompt = f"""Extract from this argument:{argument} under 100 words
     
 
 1. List the 3 strongest factual claims made
@@ -92,8 +90,8 @@ Do not:
         
         prompt = f"""Topic: {topic}
             Position: {self.stance}
-
-            Present a compelling opening argument supporting your position on {topic}. 
+            
+            Present a compelling opening argument supporting your position on {topic} under 140 words 
             Requirements:
             - Begin with a clear position statement
             - Support each argument with specific evidence
@@ -102,11 +100,11 @@ Do not:
             - End with a strong concluding sentence
 
             Do not:
+            - Exceed 140 words
             - Include instructions or explanations
             - Use bullet points or numbered lists
             - Make meta-references 
             - Start with "I believe" or "Explanation" or "Example:" similar phrases 
-            - Exceed 150 words
 
             
             Start directly with your first argument. Connect your points with smooth transitions. End with a clear conclusion that ties your arguments together.

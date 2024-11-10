@@ -14,7 +14,7 @@ class HFInferenceLLM:
         try:
             response = self.client.text_generation(
                 prompt,
-                max_new_tokens=256,
+                max_new_tokens=180,
                 temperature=0.7,  # randomness from consistency to creativity (RFL)
                 repetition_penalty=1.1, # Small penalty
                 return_full_text=False # No need of returning prompt 
