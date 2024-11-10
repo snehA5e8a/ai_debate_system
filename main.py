@@ -68,9 +68,9 @@ def main():
     
     # Topic selection
     topic_options = [
+        "Is Malayalam movie industry the best in India?",
         "Should artificial intelligence be regulated?",
-        "Is universal basic income a good idea?",
-        "Should social media platforms be responsible for content moderation?",
+        "Is a Career Change After 30 a Wise Decision?",
         "Is it ok not to dive deep to programming as AI Agents are here to help",
         "Should remote work become the standard for office jobs?",
         "Custom topic"

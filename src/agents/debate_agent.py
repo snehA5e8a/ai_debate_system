@@ -36,25 +36,20 @@ class DebateAgent:
         Extracting specific claims to counter
         Identifing  evidence gaps to exploit"""
         try:
-            analysis_prompt = f"""Extract from this argument:{argument} under 100 words
-    
+            analysis_prompt = f"""Analyze this argument: {argument}
 
-                1. List the 3 strongest factual claims made
-                2. List any statistics or data cited
-                3. Identify logical assumptions
-                4. Note any missing evidence
+            Extract exactly:
+            1. Main claim being made
+            2. Key evidence or examples used
+            3. Potential weaknesses or gaps
 
-                Format response as clear key-value pairs:
-                CLAIMS: [numbered list of main claims]
-                EVIDENCE: [any specific data/stats used]
-                ASSUMPTIONS: [key unstated assumptions]
-                GAPS: [missing evidence/logical gaps]
+            Format as:
+            MAIN CLAIM: [single sentence]
+            EVIDENCE: [bullet points of specific evidence]
+            GAPS: [bullet points of weaknesses]
 
-                Do not:
-                - Make meta-comments
-                - Add analysis labels
-                - Include rebuttals yet
-                - Evaluate validity"""
+            Keep total response under 80 words.
+            Focus only on concrete points, not rhetoric or style."""
             
             analysis = self.llm(analysis_prompt)
             return {"analysis": analysis, "timestamp": time.time()}
@@ -113,26 +108,30 @@ class DebateAgent:
         # Check memory for repeated points
         previous_points = [m['content'] for m in self.memory]
         
-        prompt = f""" On Topic: {topic} you are taking {self.stance} stance
+        prompt = f""" Topic: {topic}
+    Your stance: {self.stance}
+    Opponent's argument: {opponent_argument}
+    Generate a specific rebuttal that:
+    1. Directly addresses the topic "{topic}"
+    2. Responds to these key points from opponent's argument:{analysis.get('analysis', '')}
 
-    Create an argument that opposes the opponent's argument: {opponent_argument}
-    Based on opponent's argument: {analysis.get('analysis', '')}
-    While creating this argument,keep in mind your Previous discussion points: {previous_points} to
-    1. Address opponent's key points directly
-    2. Build upon rather than just oppose
-    3. Advance the discussion with new insights
-    4. Connect arguments to broader implications
-    5. Present new supporting evidence
-    6. Use {parameters['debate_style'].lower()} tone
+    Requirements:
+    - Stay focused on the exact topic
+    - Provide specific counterpoints with evidence
+    - Use {parameters['debate_style'].lower()} language
+    - Keep response under 130 words
+    - Make direct references to the topic and opponent's points
+    - Include at least one piece of supporting evidence
 
     Do not:
-    - Cycle back to previous arguments
-    - Simply negate opponent's points
-    - Use meta-debate language
-    - List points with markers
-    
-    Begin the response directly with your counterargument."""
+    - Make generic statements about debate or discourse
+    - Use meta-language about arguments
+    - Drift to unrelated topics
+    - Use debate terminology (e.g., "counterargument", "in conclusion")
+    - Make comparisons to unrelated fields
+    - Use filler phrases or abstract concepts
 
+    Start directly with your specific rebuttal to the opponent's points about {topic}."""
         try:
             response1 = self.llm(prompt)
             response = clean_response(response1)
