@@ -1,5 +1,6 @@
 from huggingface_hub import InferenceClient
 import streamlit as st
+from .utils import clean_response
 
 class HFInferenceLLM:
     """Language model interface using HuggingFace Inference API"""
@@ -10,18 +11,24 @@ class HFInferenceLLM:
         )
     
     def __call__(self, prompt: str) -> str:
-        ''' Passing prompt via InferenceClient text generation method'''
         try:
+            # Increase max_new_tokens to handle longer responses
             response = self.client.text_generation(
                 prompt,
-                max_new_tokens=180,
-                temperature=0.6,  # randomness from consistency to creativity (RFL)
-                repetition_penalty=1.2, # Small penalty
-                return_full_text=False # No need of returning prompt 
+                max_new_tokens=256,  # Increased from 180
+                temperature=0.6,
+                repetition_penalty=1.2,
+                return_full_text=False
             )
+            
             if response is None:
                 return "No response generated"
-            return str(response).strip() # str response removing extra spaces 
+                
+            # Clean the response
+            clean_resp = clean_response(str(response))
+            
+            return clean_resp
+            
         except Exception as e:
             st.error(f"Error generating response: {str(e)}")
             return "Error generating response"

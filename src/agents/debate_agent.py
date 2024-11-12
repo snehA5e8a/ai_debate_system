@@ -49,18 +49,36 @@ class DebateAgent(BaseAgent):
 
     def generate_opening_statement(self, topic: str, parameters: Dict) -> Dict:
         """Generate opening debate statement"""
-        # Perceive topic and context
-        perception = self.perceive({
-            'type': 'topic',
-            'content': topic,
-            'context': parameters
-        })
-        
-        # Formulate argument
-        prompt = self._create_opening_prompt(topic, perception)
         try:
+            # Perceive topic and context
+            perception = self.perceive({
+                'type': 'topic',
+                'content': topic,
+                'context': parameters
+            })
+            
+            # Create prompt with clear length guidance
+            prompt = f"""Generate a complete opening debate statement on: {topic}
+            Position: {self.stance}
+            
+            Requirements:
+            - Clear introduction, main points, and conclusion
+            - Minimum 3 well-developed paragraphs
+            - Strong, complete sentences
+            - Professional debate tone
+            - Present compelling evidence
+            - Maximum 500 words
+            - Each point should be fully explained
+            - End with a complete sentence
+            """
+            
             response = self.llm(prompt)
             
+            # Verify response length and completeness
+            if len(response.split()) < 50:  # Minimum word count
+                completion = self._generate_completion(response, topic)
+                response = f"{response} {completion}".strip()
+                
             argument = Argument(
                 content=str(response),
                 strength=self._evaluate_argument_strength(response),
@@ -80,6 +98,7 @@ class DebateAgent(BaseAgent):
                 }
             }
         except Exception as e:
+            print(f"Error in generate_opening_statement: {str(e)}")  # Debug print
             return {
                 'content': f"Error generating opening statement: {str(e)}",
                 'metadata': {
@@ -88,7 +107,7 @@ class DebateAgent(BaseAgent):
                     'confidence': 0.0
                 }
             }
-
+    
     def generate_rebuttal(self, topic: str, opponent_argument: str, parameters: Dict) -> Dict:
         """Generate rebuttal to opponent's argument"""
         try:
@@ -140,10 +159,28 @@ class DebateAgent(BaseAgent):
             # Analyze debate history
             debate_analysis = self._analyze_debate_history()
             
-            # Generate closing arguments
-            prompt = self._create_closing_prompt(topic, debate_analysis)
+            # Create prompt with completion requirements
+            prompt = f"""Generate a complete closing statement for the debate on: {topic}
+            
+            Key points made:
+            {debate_analysis.get('key_points', [])}
+            
+            Requirements:
+            - Summarize main arguments effectively
+            - Address key counterpoints
+            - Reinforce strongest evidence
+            - Provide clear conclusion
+            - Maximum 300 words
+            - End with a powerful closing sentence
+            - Complete all thoughts
+            """
             
             response = self.llm(prompt)
+            
+            # Verify response completeness
+            if len(response.split()) < 30:  # Minimum word count for closing
+                completion = self._generate_completion(response, topic)
+                response = f"{response} {completion}".strip()
             
             argument = Argument(
                 content=str(response),
@@ -158,12 +195,13 @@ class DebateAgent(BaseAgent):
             return {
                 'content': str(response),
                 'metadata': {
-                    'key_points': debate_analysis['key_points'],
+                    'key_points': debate_analysis.get('key_points', []),
                     'style': self.style.value,
                     'confidence': self._calculate_confidence(argument)
                 }
             }
         except Exception as e:
+            print(f"Error in generate_closing_statement: {str(e)}")  # Debug print
             return {
                 'content': f"Error generating closing statement: {str(e)}",
                 'metadata': {
@@ -243,6 +281,9 @@ class DebateAgent(BaseAgent):
         - Clear logical arguments
         - {self.style.value} debate style
         - No meta-text or explanations
+        - Complete all thoughts and sentences
+        - Maximum 400 words
+        - End with a strong conclusion
         """
 
     def _create_closing_prompt(self, topic: str, analysis: Dict) -> str:
@@ -260,7 +301,88 @@ class DebateAgent(BaseAgent):
         - Strong conclusion
         - {self.style.value} debate style
         - No meta-text or explanations
+        - Maximum 300 words
+        - Complete all thoughts and sentences
         """
+    def generate_closing_statement(self, topic: str, parameters: Dict) -> Dict:
+        """Generate closing statement"""
+        try:
+            # Analyze debate history
+            debate_analysis = self._analyze_debate_history()
+            
+            # Create prompt with completion requirements
+            prompt = f"""Generate a complete closing statement for the debate on: {topic}
+            
+            Key points made:
+            {debate_analysis.get('key_points', [])}
+            
+            Requirements:
+            - Summarize main arguments effectively
+            - Address key counterpoints
+            - Reinforce strongest evidence
+            - Provide clear conclusion
+            - Maximum 300 words
+            - End with a powerful closing sentence
+            - Complete all thoughts
+            """
+            
+            response = self.llm(prompt)
+            
+            # Verify response completeness
+            if len(response.split()) < 30:  # Minimum word count for closing
+                completion = self._generate_completion(response, topic)
+                response = f"{response} {completion}".strip()
+            
+            argument = Argument(
+                content=str(response),
+                strength=self._evaluate_argument_strength(response),
+                evidence=self._extract_evidence(response),
+                type='closing',
+                counter_points=[]
+            )
+            
+            self.arguments_made.append(argument)
+            
+            return {
+                'content': str(response),
+                'metadata': {
+                    'key_points': debate_analysis.get('key_points', []),
+                    'style': self.style.value,
+                    'confidence': self._calculate_confidence(argument)
+                }
+            }
+        except Exception as e:
+            print(f"Error in generate_closing_statement: {str(e)}")  # Debug print
+            return {
+                'content': f"Error generating closing statement: {str(e)}",
+                'metadata': {
+                    'key_points': [],
+                    'style': self.style.value,
+                    'confidence': 0.0
+                }
+            }
+
+    def _generate_completion(self, partial_response: str, topic: str) -> str:
+        """Generate completion for truncated response"""
+        try:
+            completion_prompt = f"""Complete this debate statement naturally:
+            
+            Partial statement: {partial_response}
+            Topic: {topic}
+            
+            Requirements:
+            - Continue the thought naturally
+            - Maintain the same style and tone
+            - End with a complete sentence
+            - Maximum 2-3 sentences
+            - Must provide proper closure
+            """
+            
+            completion = self.llm(completion_prompt)
+            return completion if completion else "."
+        except Exception as e:
+            print(f"Error in _generate_completion: {str(e)}")  # Debug print
+            return "."  # Fallback to simple period if completion fails
 
     def _calculate_confidence(self, argument: Argument) -> float:
         """Calculate confidence in an argument"""
