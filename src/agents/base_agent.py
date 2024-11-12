@@ -93,8 +93,6 @@ class BaseAgent:
             'recent_inputs': []
         }
     
-    # Add these methods to the BaseAgent class in base_agent.py
-
     def _is_important(self, info: Dict) -> bool:
         """Determine if information is important enough to store in memory"""
         importance_score = 0.0
