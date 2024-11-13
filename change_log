@@ -1,6 +1,0 @@
-Nov 8
-
-# Debate System #
-Calling moderator by passing debate_log[-2]
-# Moderator
-Debate_log[-2] passed to moderator to get previous arguments
