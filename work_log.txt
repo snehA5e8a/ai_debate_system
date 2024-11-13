@@ -1,3 +1,4 @@
+Nov 9
 - Debate system 
 - Moderator Agent
 -- Edited the intro prompt - working :heavy-tick:
@@ -5,7 +6,7 @@
 
 - Debate agent
 Code space is being displayed - special characters, tokens are being leaked to response
--- Added a response preprocessing function after generating response, before passing to main
+-- Added a response preprocessing function after generating response, before passing to main ==> applied to all 
 
 Issues
 1. Debate agent - opening statement(s) response overflow 
@@ -19,4 +20,20 @@ Issues
 4. Factchecker result - inconsistent : need to check the flow
 
 
+Nov 10
 
+Need to define a base class 
+attributes : memory,(not for factchecker) llm, name(optional)
+methods : cleanup response
+As of now method copied to moderator 
+
+-- 
+1. Solution tried: 
+Reducing max_tokens to 180 to handle overflow issue and speed up - not worked
+Changed the model to Mistral - response improved
+
+Model changed
+-------------
+1. Overflow issue fixed
+4. Factchecker result ok
+Loading time increased - bigger model

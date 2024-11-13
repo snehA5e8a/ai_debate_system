@@ -5,19 +5,25 @@ An agentic adversarial AI debate system that facilitates structured debates betw
 ## Project Structure
 ```
 ai_debate_system/
-├── src/
-│   ├── agents/
-│   │   ├── __init__.py
-│   │   ├── base_agent.py
-│   │   ├── debate_agent.py
-│   │   ├── debate_system.py
-│   │   ├── fact_checker.py
-│   │   ├── llm.py
-│   │   └── moderator.py
-│   ├── env/
-│   └── main.py
-├── requirements.txt
-└── README.md
+├── app/
+│   ├── __init__.py
+│   └── main.py               # Streamlit interface & debate orchestration
+│
+├── agents/                   # Core agent modules
+│   ├── __init__.py          # Exports agent classes
+│   ├── base_agent.py        # Base agent functionality
+│   ├── debate_agent.py      # Debater implementation
+│   ├── fact_checker.py      # Fact checking agent
+│   ├── moderator.py         # Moderator agent
+│   └── llm.py              # LLM interface
+│
+├── utils/                    # Helper utilities
+│   ├── __init__.py
+│   └── utils.py             # Common utilities
+│
+├── README.md                # Project documentation
+├── requirements.txt         # Dependencies
+└── .env                    # Environment variables (API keys)
 ```
 
 ## Description
@@ -143,14 +149,7 @@ To contribute to the project:
 ## License
 
 All rights reserved. This project is currently unlicensed.
-Note: Without a license:
-
 The code is under exclusive copyright by default
-No one can copy, distribute, or modify your work
-No one can use your code for public or commercial purposes
-Others can read and learn from your code, but cannot use it in their own projects
-
-If you plan to collaborate or share this project in the future, consider adding an open-source license.
 
 ## Authors
 
