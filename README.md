@@ -2,7 +2,7 @@
 
 An agentic adversarial AI debate system that facilitates structured debates between AI agents on various topics with moderation and fact-checking capabilities.
 
-Check the app here: https://agentdebatesystem-c2be8aunafn9dpah2fahd7.streamlit.app/
+Check the app here: https://aidebatesystem-s4dzbsqmfvpsalgpjfgl3j.streamlit.app/
 
 ## Project Structure
 ```
